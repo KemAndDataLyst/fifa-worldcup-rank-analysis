@@ -2,17 +2,17 @@ use fifa_ranks;
 
 WITH 
 num_matches AS (SELECT r.home_team, r.away_team, r.match_date, r.home_score, r.away_score,
-		ROW_NUMBER() OVER (PARTITION BY YEAR(r.match_date) ORDER BY r.match_date DESC) AS rn,
-				CASE WHEN (r.home_score > r.away_score) THEN r.home_team
-					WHEN (r.away_score > r.home_score) THEN r.away_team
-                     WHEN (r.home_score = r.away_score) THEN  COALESCE (s.winner, 'Draw')
-				END AS 'winner'
-			FROM fifa_ranks.results r LEFT JOIN shootouts s 
-					ON r.match_date = s.match_date AND 
-                    r.home_team = s.home_team AND 
-                    r.away_team = s.away_team
-			WHERE (r.tournament = 'FIFA World Cup') 
-			AND (r.match_date BETWEEN ' 1993-08-08 00:00:00' AND '2018-12-31 00:00:00') ) ,
+						ROW_NUMBER() OVER (PARTITION BY YEAR(r.match_date) ORDER BY r.match_date DESC) AS rn,
+						CASE WHEN (r.home_score > r.away_score) THEN r.home_team
+							 WHEN (r.away_score > r.home_score) THEN r.away_team
+                   			 WHEN (r.home_score = r.away_score) THEN  COALESCE (s.winner, 'Draw')
+				    		 END AS 'winner'
+			    FROM fifa_ranks.results r LEFT JOIN shootouts s 
+					        ON r.match_date = s.match_date AND 
+                  		  	r.home_team = s.home_team AND 
+                   	 		r.away_team = s.away_team
+				WHERE (r.tournament = 'FIFA World Cup') 
+						AND (r.match_date BETWEEN ' 1993-08-08 00:00:00' AND '2018-12-31 00:00:00') ) ,
 furthest_round as (SELECT world_cup, 
 							CASE WHEN teams = 'United States' THEN 'USA'
 								WHEN teams = 'South Korea' THEN 'Korea Republic'
@@ -31,9 +31,10 @@ furthest_round as (SELECT world_cup,
 							GROUP BY teams, year(match_date)) AS x
 					GROUP BY teams, world_cup
 					ORDER BY world_cup, best_finish),
-began as (SELECT year(match_date) AS world_cup, MIN(match_date) as start_date FROM results
+began as (	SELECT year(match_date) AS world_cup, MIN(match_date) as start_date 
+			FROM results
 			WHERE (tournament = 'FIFA World Cup') 
-				AND (match_date BETWEEN ' 1993-08-08 00:00:00' AND '2018-12-31 00:00:00')
+					AND (match_date BETWEEN ' 1993-08-08 00:00:00' AND '2018-12-31 00:00:00')
 			GROUP BY world_cup),
 pre as (SELECT b.world_cup, MAX(d.rank_date) AS rank_date
 		FROM began b
